@@ -1,15 +1,16 @@
 use std::hash::Hash;
 
+use ahash::AHasher;
 use bevy::{
-    core::FrameCount,
+    diagnostic::FrameCount,
     ecs::{
         component::{ComponentId, ComponentInfo},
         entity::EntityHashMap,
         event::EventCursor,
     },
+    platform_support::collections::HashMap,
     prelude::*,
     reflect::{serde::ReflectSerializer, ReflectFromPtr},
-    utils::{AHasher, HashMap},
 };
 use rerun::external::re_log::ResultExt;
 
@@ -117,11 +118,11 @@ fn sync_components(
     previous_entities: &mut EntityHashMap<rerun::EntityPath>,
     rec: &rerun::RecordingStream,
 ) {
-    let now = std::time::Instant::now();
+    //let now = std::time::Instant::now();
 
     let _trace = info_span!("sync_components").entered();
 
-    let mut all_entities = world.query::<(Entity, Option<&Parent>, Option<&Name>)>();
+    let mut all_entities = world.query::<(Entity, Option<&ChildOf>, Option<&Name>)>();
     all_entities.update_archetypes(world);
 
     // TODO(cmc): do this the smart way
@@ -163,41 +164,45 @@ fn sync_components(
 
         let mut as_components: HashMap<Option<&'static str>, Vec<Box<dyn rerun::AsComponents>>> =
             Default::default();
-        for component in world.inspect_entity(entity_id) {
-            let mut has_changed = entity
-                .get_change_ticks_by_id(component.id())
-                .map_or(false, |changes| {
-                    changes.is_changed(last_change_tick, change_tick)
-                });
+        if let Ok(components) = world.inspect_entity(entity_id) {
+            for component in components {
+                let mut has_changed = entity
+                    .get_change_ticks_by_id(component.id())
+                    .map_or(false, |changes| {
+                        changes.is_changed(last_change_tick, change_tick)
+                    });
 
-            // TODO(cmc): implement proper subscription model for asset dependencies
-            has_changed |=
-                !image_events.is_empty() && DEPENDS_ON_IMAGES.contains(&component.name());
-            has_changed |= !mesh_events.is_empty() && DEPENDS_ON_MESHES.contains(&component.name());
-            has_changed |=
-                !stdmat_events.is_empty() && DEPENDS_ON_STDMATS.contains(&component.name());
-            has_changed |=
-                !colmat_events.is_empty() && DEPENDS_ON_COLMATS.contains(&component.name());
+                // TODO(cmc): implement proper subscription model for asset dependencies
+                has_changed |=
+                    !image_events.is_empty() && DEPENDS_ON_IMAGES.contains(&component.name());
+                has_changed |=
+                    !mesh_events.is_empty() && DEPENDS_ON_MESHES.contains(&component.name());
+                has_changed |=
+                    !stdmat_events.is_empty() && DEPENDS_ON_STDMATS.contains(&component.name());
+                has_changed |=
+                    !colmat_events.is_empty() && DEPENDS_ON_COLMATS.contains(&component.name());
 
-            if !has_changed {
-                continue;
-            }
-
-            {
-                // NOTE: Default the hash to 0, that way `<missing reflection data>` will be mapped
-                // to 0 and will be logged only once rather than every frame.
-                let component_hash = component_to_hash(world, entity, component).unwrap_or(0u64);
-                current_hashes.insert(component.id(), component_hash);
-                if last_hashes.get(&component.id()) == Some(&component_hash) {
+                if !has_changed {
                     continue;
                 }
-            }
 
-            if let Some(logger) =
-                get_component_logger(component, loggers.as_ref(), &default_loggers)
-            {
-                let (suffix, data) = logger(world, &all_entities, entity, component);
-                as_components.entry(suffix).or_default().extend(data);
+                {
+                    // NOTE: Default the hash to 0, that way `<missing reflection data>` will be mapped
+                    // to 0 and will be logged only once rather than every frame.
+                    let component_hash =
+                        component_to_hash(world, entity, component).unwrap_or(0u64);
+                    current_hashes.insert(component.id(), component_hash);
+                    if last_hashes.get(&component.id()) == Some(&component_hash) {
+                        continue;
+                    }
+                }
+
+                if let Some(logger) =
+                    get_component_logger(component, loggers.as_ref(), &default_loggers)
+                {
+                    let (suffix, data) = logger(world, &all_entities, entity, component);
+                    as_components.entry(suffix).or_default().extend(data);
+                }
             }
         }
 
@@ -205,7 +210,7 @@ fn sync_components(
             deferred_hash_updates.push((entity_id, current_hashes));
         }
 
-        let mut current_components = HashMap::default();
+        let mut current_components = HashMap::<_, rerun::EntityPath>::default();
 
         // TODO(cmc): lots of inneficiencies and awkward collections that are forced upon us
         // because of how the RecordingStream API is designed.
@@ -260,7 +265,8 @@ fn sync_components(
         world.entity_mut(entity_id).insert(hashes);
     }
 
-    trace!(elapsed=?now.elapsed(), "component sync done");
+    //trace!(elapsed = ?now.elapsed(), "component sync done");
+    trace!("component sync done");
 }
 
 fn clear_despawned_entities(

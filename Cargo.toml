@@ -3,9 +3,9 @@ name = "revy"
 version = "0.21.0"
 authors = ["rerun.io <opensource@rerun.io>"]
 categories = [
-    "game-development",
-    "development-tools",
-    "development-tools::debugging",
+  "game-development",
+  "development-tools",
+  "development-tools::debugging",
 ]
 description = "Proof-of-concept time-travel debugger for Bevy, built with Rerun."
 edition = "2021"
@@ -26,11 +26,12 @@ targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
 
 [dependencies]
 rerun = { version = "0.21.0", default-features = false, features = [
-    "sdk",
-    "image",
-    "glam",
+  "sdk",
+  "image",
+  "glam",
 ] }
-bevy = { version = "0.15" }
+bevy = { version = "0.16.0-rc.2" }
+ahash = "0.8.11" # https://bevyengine.org/learn/migration-guides/0-15-to-0-16/#utils
 # bevy = { path = "../../bevyengine/bevy/" }
 # `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.
 # On linux, you may run into libc issues depending on your system.

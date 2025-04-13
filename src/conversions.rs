@@ -186,6 +186,7 @@ impl
         // TODO(wumpf): doesn't distinguish between norm/non-norm and srgb/non-srgb.
 
         let width_height = [self.width(), self.height()];
+        let data = self.data.clone()?;
 
         color_model.map(|_| {
             (
@@ -197,7 +198,7 @@ impl
                     channel_datatype,
                 }
                 .into(),
-                rerun::components::ImageBuffer(self.data.clone().into()),
+                rerun::components::ImageBuffer(data.into()),
             )
         })
     }
@@ -233,6 +234,7 @@ impl ToRerun<rerun::Pinhole> for Projection {
         match self {
             Projection::Perspective(p) => p.to_rerun(),
             Projection::Orthographic(p) => p.to_rerun(),
+            Projection::Custom(_) => todo!(),
         }
     }
 }

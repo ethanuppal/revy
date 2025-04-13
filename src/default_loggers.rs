@@ -1,8 +1,8 @@
 use bevy::{
     ecs::component::ComponentInfo,
+    platform_support::collections::HashMap,
     prelude::*,
     render::{mesh::PlaneMeshBuilder, primitives::Aabb},
-    utils::HashMap,
 };
 
 use crate::{compute_entity_path, Aliased, RerunLogger, ToRerun};
@@ -83,7 +83,7 @@ impl Default for DefaultRerunComponentLoggers {
 
 fn bevy_transform<'w>(
     _world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -99,7 +99,7 @@ fn bevy_transform<'w>(
 
 fn bevy_global_transform<'w>(
     _world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -129,7 +129,7 @@ fn bevy_global_transform<'w>(
 
 fn bevy_mesh<'w>(
     world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
     handle: Option<&Handle<Mesh>>,
@@ -170,7 +170,7 @@ fn bevy_mesh<'w>(
 
 fn bevy_mesh2d<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -187,7 +187,7 @@ fn bevy_mesh2d<'w>(
 
 fn bevy_mesh3d<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -204,7 +204,7 @@ fn bevy_mesh3d<'w>(
 
 fn bevy_camera<'w, C: Component + ToRerun<rerun::Pinhole>>(
     _world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -219,7 +219,7 @@ fn bevy_camera<'w, C: Component + ToRerun<rerun::Pinhole>>(
 
 fn bevy_projection<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -228,26 +228,26 @@ fn bevy_projection<'w>(
 
 fn bevy_projection_orthographic<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
-    bevy_camera::<OrthographicProjection>(world, all_entities, entity, component)
+    bevy_camera::<Projection>(world, all_entities, entity, component)
 }
 
 fn bevy_projection_perspective<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
-    bevy_camera::<PerspectiveProjection>(world, all_entities, entity, component)
+    bevy_camera::<Projection>(world, all_entities, entity, component)
 }
 
 // TODO(cmc): check if sprite has custom sizes etc
 fn bevy_sprite<'w>(
     world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -278,7 +278,7 @@ fn bevy_sprite<'w>(
 
 fn bevy_aabb<'w>(
     world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -315,15 +315,15 @@ fn bevy_aabb<'w>(
 
 fn bevy_parent<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
     let suffix = None;
     let data = entity
-        .get::<Parent>()
+        .get::<ChildOf>()
         .map(|parent| {
-            let parent_entity_path = compute_entity_path(world, all_entities, parent.get());
+            let parent_entity_path = compute_entity_path(world, all_entities, parent.parent());
             Aliased::<rerun::datatypes::EntityPath>::new(
                 "Parent",
                 rerun::datatypes::EntityPath(parent_entity_path.to_string().into()),
@@ -335,7 +335,7 @@ fn bevy_parent<'w>(
 
 fn bevy_children<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
@@ -368,7 +368,7 @@ fn bevy_children<'w>(
         .map(|children| {
             let children = children
                 .iter()
-                .map(|entity_id| compute_entity_path(world, all_entities, *entity_id).to_string())
+                .map(|entity_id| compute_entity_path(world, all_entities, entity_id).to_string())
                 .collect::<Vec<_>>();
             Aliased::<rerun::components::Text>::new(
                 "RawChildren",
