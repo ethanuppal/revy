@@ -30,7 +30,8 @@ rerun = { version = "0.21.0", default-features = false, features = [
   "image",
   "glam",
 ] }
-bevy = { version = "0.16.0-rc.2" }
+bevy = { version = "0.16" }
+bevy_platform_support = "0.16.0-rc.4"
 ahash = "0.8.11" # https://bevyengine.org/learn/migration-guides/0-15-to-0-16/#utils
 # bevy = { path = "../../bevyengine/bevy/" }
 # `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.

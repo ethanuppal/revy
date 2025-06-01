@@ -8,10 +8,10 @@ use bevy::{
         entity::EntityHashMap,
         event::EventCursor,
     },
-    platform_support::collections::HashMap,
     prelude::*,
     reflect::{serde::ReflectSerializer, ReflectFromPtr},
 };
+use bevy_platform_support::collections::HashMap;
 use rerun::external::re_log::ResultExt;
 
 use crate::{

@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use bevy::{
     ecs::component::ComponentInfo,
-    platform_support::collections::HashMap,
     prelude::*,
     reflect::{serde::ReflectSerializer, ReflectFromPtr},
 };
+use bevy_platform_support::collections::HashMap;
 
 use crate::DefaultRerunComponentLoggers;
 

@@ -1,9 +1,9 @@
 use bevy::{
     ecs::component::ComponentInfo,
-    platform_support::collections::HashMap,
     prelude::*,
     render::{mesh::PlaneMeshBuilder, primitives::Aabb},
 };
+use bevy_platform_support::collections::HashMap;
 
 use crate::{compute_entity_path, Aliased, RerunLogger, ToRerun};
 
